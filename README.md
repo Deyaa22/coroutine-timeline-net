@@ -1,2 +1,2 @@
 # coroutine-net
-Eas-to-use and lightweight coroutine timeline implementation using C# iterator blocks and async.
+Provides Easy-to-use and lightweight coroutine timeline based on the C# iterator pattern with support for time-based delays.
