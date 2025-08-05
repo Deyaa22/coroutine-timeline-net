@@ -26,7 +26,7 @@ namespace CoroutineNet
 			Coroutine newCoroutine = new Coroutine(coroutine);
 			newCoroutine.Terminated += TerminationCallback;
 			newCoroutine.Cancelled += CancellationCallback;
-			newCoroutine.StartASyncExecution(newCoroutine._method, newCoroutine._cancellationTokenSource);
+			newCoroutine.StartASyncExecution(newCoroutine._coroutineMethod, newCoroutine._cancellationTokenSource);
 			return newCoroutine;
 		}
 
@@ -71,7 +71,7 @@ namespace CoroutineNet
 			_isDisposed = true;
 			_cancellationTokenSource.Dispose();
 			_cancellationTokenSource = null;
-			_method = null;
+			_coroutineMethod = null;
 			Cancelled = null;
 			Terminated = null;
 		}
@@ -82,7 +82,7 @@ namespace CoroutineNet
 	{
 		private Coroutine(Func<IEnumerator<object>> coroutine)
 		{
-			_method = coroutine;
+			_coroutineMethod = coroutine;
 			_cancellationTokenSource = new CancellationTokenSource();
 		}
 
@@ -133,7 +133,7 @@ namespace CoroutineNet
 	public sealed partial class Coroutine : IDisposable
 	{
 		private object _lock = new object();
-		private Func<IEnumerator<object>> _method;
+		private Func<IEnumerator<object>> _coroutineMethod;
 		private CancellationTokenSource _cancellationTokenSource;
 
 		private bool _isDisposed = false;
