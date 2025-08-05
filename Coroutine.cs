@@ -26,7 +26,7 @@ namespace CoroutineNet
 			Coroutine newCoroutine = new Coroutine(coroutine);
 			newCoroutine.Terminated += TerminationCallback;
 			newCoroutine.Cancelled += CancellationCallback;
-			newCoroutine.StartASyncExecution();
+			newCoroutine.Run();
 			return newCoroutine;
 		}
 
@@ -86,7 +86,12 @@ namespace CoroutineNet
 			_cancellationTokenSource = new CancellationTokenSource();
 		}
 
-		private async void StartASyncExecution()
+		private async Task Run()
+		{
+			await Task.Run(StartASyncExecution, _cancellationTokenSource.Token);
+		}
+
+		private async Task StartASyncExecution()
 		{
 			var enumerator = _coroutineMethod();
 			while (!IsCancelled && enumerator.MoveNext())
