@@ -26,7 +26,7 @@ namespace CoroutineNet
 			Coroutine newCoroutine = new Coroutine(coroutine);
 			newCoroutine.Terminated += TerminationCallback;
 			newCoroutine.Cancelled += CancellationCallback;
-			newCoroutine.StartASyncExecution(newCoroutine._coroutineMethod, newCoroutine._cancellationTokenSource);
+			newCoroutine.StartASyncExecution();
 			return newCoroutine;
 		}
 
@@ -86,9 +86,9 @@ namespace CoroutineNet
 			_cancellationTokenSource = new CancellationTokenSource();
 		}
 
-		private async void StartASyncExecution(Func<IEnumerator<object>> coroutine, CancellationTokenSource source)
+		private async void StartASyncExecution()
 		{
-			var enumerator = coroutine();
+			var enumerator = _coroutineMethod();
 			while (!IsCancelled && enumerator.MoveNext())
 			{
 				try
@@ -96,15 +96,15 @@ namespace CoroutineNet
 					var i = enumerator.Current;
 					if (i is TimeSpan timespan)
 					{
-						await Task.Delay(timespan, source.Token);
+						await Task.Delay(timespan, _cancellationTokenSource.Token);
 					}
 					else if (i is int seconds)
 					{
-						await Task.Delay(seconds * 1000, source.Token);
+						await Task.Delay(seconds * 1000, _cancellationTokenSource.Token);
 					}
 					else if (i is float secs)
 					{
-						await Task.Delay((int)(secs * 1000), source.Token);
+						await Task.Delay((int)(secs * 1000), _cancellationTokenSource.Token);
 					}
 				}
 				catch
