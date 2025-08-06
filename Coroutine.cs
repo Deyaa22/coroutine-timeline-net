@@ -155,6 +155,7 @@ namespace CoroutineNet
 		private bool _isTerminated = false;
 		private bool _isCancelled = false;
 
+		public CancellationToken CancellationToken { get { return _cancellationTokenSource.Token; } }
 		public bool IsTerminated { get { return _isTerminated || IsCancelled; } private set { _isTerminated = value; } }
 		public bool IsCancelled { get { return _isCancelled || (!_isDisposed && _cancellationTokenSource.IsCancellationRequested); } private set { _isCancelled = value; } }
 	}
