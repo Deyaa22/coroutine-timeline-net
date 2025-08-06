@@ -21,7 +21,7 @@ namespace CoroutineNet
 
 		public event Action Terminated;
 
-		public static Coroutine StartCoroutine(Func<IEnumerator<object>> coroutine, Action TerminationCallback = null, Action CancellationCallback = null)
+		public static Coroutine StartCoroutine(Func<CancellationTokenSource, IEnumerator<object>>  coroutine, Action TerminationCallback = null, Action CancellationCallback = null)
 		{
 			Coroutine newCoroutine = new Coroutine(coroutine);
 			newCoroutine.Terminated += TerminationCallback;
@@ -80,7 +80,7 @@ namespace CoroutineNet
 	// Functionality
 	public sealed partial class Coroutine : IDisposable
 	{
-		private Coroutine(Func<IEnumerator<object>> coroutine)
+		private Coroutine(Func<CancellationTokenSource, IEnumerator<object>>  coroutine)
 		{
 			_coroutineMethod = coroutine;
 			_cancellationTokenSource = new CancellationTokenSource();
@@ -138,7 +138,7 @@ namespace CoroutineNet
 	public sealed partial class Coroutine : IDisposable
 	{
 		private object _lock = new object();
-		private Func<IEnumerator<object>> _coroutineMethod;
+		private Func<CancellationTokenSource, IEnumerator<object>>  _coroutineMethod;
 		private CancellationTokenSource _cancellationTokenSource;
 
 		private bool _isDisposed = false;
