@@ -93,7 +93,7 @@ namespace CoroutineNet
 
 		private async Task StartASyncExecution()
 		{
-			var enumerator = _coroutineMethod();
+			var enumerator = _coroutineMethod(_cancellationTokenSource);
 			while (!IsCancelled && enumerator.MoveNext())
 			{
 				try
