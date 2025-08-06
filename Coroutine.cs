@@ -45,19 +45,6 @@ namespace CoroutineNet
 			}
 		}
 
-		private void Terminate()
-		{
-			lock (_lock)
-			{
-				if (IsTerminated)
-					return;
-
-				IsTerminated = true;
-				OnTerminated();
-				Dispose();
-			}
-		}
-
 		public void Dispose()
 		{
 			if (_isDisposed)
@@ -121,6 +108,19 @@ namespace CoroutineNet
 
 			if (!IsCancelled)
 				Terminate();
+		}
+
+		private void Terminate()
+		{
+			lock (_lock)
+			{
+				if (IsTerminated)
+					return;
+
+				IsTerminated = true;
+				OnTerminated();
+				Dispose();
+			}
 		}
 
 		private void OnCancel()
