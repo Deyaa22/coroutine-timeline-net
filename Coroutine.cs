@@ -30,6 +30,16 @@ namespace CoroutineNet
 			return newCoroutine;
 		}
 
+		public void CancelAfter(int millisecondsDelay)
+        {
+                CancelAfter(TimeSpan.FromMilliseconds(millisecondsDelay));
+        }
+
+        public async void CancelAfter(TimeSpan timeDelay)
+        {
+                await Task.Delay(timeDelay, _cancellationTokenSource.Token).ContinueWith((ant) => { Cancel(); });
+        }
+
 		public void Cancel()
 		{
 			lock (_lock)
