@@ -44,28 +44,29 @@ namespace CoroutineNet
 		{
 			lock (_lock)
 			{
-				if (IsTerminated)
+				if (IsDisposed || IsTerminated || IsCancelled)
 					return;
 
 				IsCancelled = true;
-				if (!_isDisposed)
+				if (!IsDisposed)
 					_cancellationTokenSource.Cancel();
 				OnCancel();
-				Terminate();
+				Dispose();
 			}
 		}
 
 		public void Dispose()
 		{
-			if (_isDisposed)
+			if (IsDisposed)
 				return;
 
-			if (!IsCancelled)
+			if (!IsCancelled && !IsTerminated)
 			{
 				Cancel();
 				return;
 			}
-			_isDisposed = true;
+
+			IsDisposed = true;
 			_cancellationTokenSource.Dispose();
 			_cancellationTokenSource = null;
 			_coroutineMethod = null;
@@ -91,7 +92,7 @@ namespace CoroutineNet
 		private async Task StartASyncExecution()
 		{
 			var enumerator = _coroutineMethod(this);
-			while (!IsCancelled && enumerator.MoveNext())
+			while (!IsCancelled && !IsDisposed && enumerator.MoveNext())
 			{
 				try
 				{
@@ -116,7 +117,7 @@ namespace CoroutineNet
 			}
 			enumerator.Dispose();
 
-			if (!IsCancelled)
+			if (!IsCancelled && !IsDisposed)
 				Terminate();
 		}
 
@@ -124,7 +125,7 @@ namespace CoroutineNet
 		{
 			lock (_lock)
 			{
-				if (IsTerminated)
+				if (IsDisposed || IsTerminated || IsCancelled)
 					return;
 
 				IsTerminated = true;
@@ -154,7 +155,7 @@ namespace CoroutineNet
 		public CancellationToken CancellationToken { get { return _cancellationTokenSource.Token; } }
 
 		public bool IsDisposed { get; private set; }
-        public bool IsTerminated { get; private set; }
+		public bool IsTerminated { get; private set; }
 		public bool IsCancelled { get; private set; }
 	}
 }
