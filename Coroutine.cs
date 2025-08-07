@@ -21,7 +21,7 @@ namespace CoroutineNet
 
 		public event Action Terminated;
 
-		public static Coroutine StartCoroutine(Func<Coroutine, IEnumerator<object>>   coroutine, Action TerminationCallback = null, Action CancellationCallback = null)
+		public static Coroutine StartCoroutine(Func<Coroutine, IEnumerator<object>> coroutine, Action TerminationCallback = null, Action CancellationCallback = null)
 		{
 			Coroutine newCoroutine = new Coroutine(coroutine);
 			newCoroutine.Terminated += TerminationCallback;
@@ -31,14 +31,14 @@ namespace CoroutineNet
 		}
 
 		public void CancelAfter(int millisecondsDelay)
-        {
-                CancelAfter(TimeSpan.FromMilliseconds(millisecondsDelay));
-        }
+		{
+			CancelAfter(TimeSpan.FromMilliseconds(millisecondsDelay));
+		}
 
-        public async void CancelAfter(TimeSpan timeDelay)
-        {
-                await Task.Delay(timeDelay, _cancellationTokenSource.Token).ContinueWith((ant) => { Cancel(); });
-        }
+		public async void CancelAfter(TimeSpan timeDelay)
+		{
+			await Task.Delay(timeDelay, _cancellationTokenSource.Token).ContinueWith((ant) => { Cancel(); });
+		}
 
 		public void Cancel()
 		{
@@ -77,7 +77,7 @@ namespace CoroutineNet
 	// Functionality
 	public sealed partial class Coroutine : IDisposable
 	{
-		private Coroutine(Func<Coroutine, IEnumerator<object>>   coroutine)
+		private Coroutine(Func<Coroutine, IEnumerator<object>> coroutine)
 		{
 			_coroutineMethod = coroutine;
 			_cancellationTokenSource = new CancellationTokenSource();
@@ -148,7 +148,7 @@ namespace CoroutineNet
 	public sealed partial class Coroutine : IDisposable
 	{
 		private object _lock = new object();
-		private Func<Coroutine, IEnumerator<object>>  _coroutineMethod;
+		private Func<Coroutine, IEnumerator<object>> _coroutineMethod;
 		private CancellationTokenSource _cancellationTokenSource;
 
 		private bool _isDisposed = false;
