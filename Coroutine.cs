@@ -37,7 +37,10 @@ namespace CoroutineNet
 
 		public async void CancelAfter(TimeSpan timeDelay)
 		{
-			await Task.Delay(timeDelay, _cancellationTokenSource.Token).ContinueWith((ant) => { Cancel(); });
+			if (IsDisposed)
+				return;
+
+			await Task.Delay(timeDelay, _cancellationTokenSource.Token).ContinueWith((ant) => { if (IsDisposed) return; Cancel(); });
 		}
 
 		public void Cancel()
@@ -48,8 +51,6 @@ namespace CoroutineNet
 					return;
 
 				IsCancelled = true;
-				if (!IsDisposed)
-					_cancellationTokenSource.Cancel();
 				OnCancel();
 				Dispose();
 			}
@@ -62,8 +63,7 @@ namespace CoroutineNet
 
 			if (!IsCancelled && !IsTerminated)
 			{
-				Cancel();
-				return;
+				CancelSilently();
 			}
 
 			IsDisposed = true;
@@ -133,6 +133,12 @@ namespace CoroutineNet
 				Dispose();
 			}
 		}
+
+		private void CancelSilently()
+        {
+			if (!IsDisposed && !_cancellationTokenSource.IsCancellationRequested)
+				_cancellationTokenSource.Cancel();
+        }
 
 		private void OnCancel()
 		{
