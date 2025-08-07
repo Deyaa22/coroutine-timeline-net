@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-namespace CoroutineNet
+namespace CoroutineTimeline
 {
 	/// <summary>
 	/// Provides an easy-to-use and lightweight coroutine timeline based on the C# iterator pattern with support for time-based delays.
