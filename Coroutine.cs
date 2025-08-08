@@ -48,7 +48,7 @@ namespace CoroutineTimeline
 		{
 			lock (_lock)
 			{
-				if (IsDisposed || IsTerminated || IsCancelled)
+				if (IsDisposed || IsCompleted || IsCancelled)
 					return;
 
 				IsCancelled = true;
@@ -63,7 +63,7 @@ namespace CoroutineTimeline
 			if (IsDisposed)
 				return;
 
-			if (!IsCancelled && !IsTerminated)
+			if (!IsCancelled && !IsCompleted)
 			{
 				CancelSilently();
 			}
@@ -127,10 +127,10 @@ namespace CoroutineTimeline
 		{
 			lock (_lock)
 			{
-				if (IsDisposed || IsTerminated || IsCancelled)
+				if (IsDisposed || IsCompleted || IsCancelled)
 					return;
 
-				IsTerminated = true;
+				IsCompleted = true;
 				OnTerminated();
 				if (AutoDispose)
 					((IDisposable)this).Dispose();
@@ -165,7 +165,7 @@ namespace CoroutineTimeline
 
 		public bool AutoDispose { get; private set; } = true;
 		public bool IsDisposed { get; private set; }
-		public bool IsTerminated { get; private set; }
+		public bool IsCompleted { get; private set; }
 		public bool IsCancelled { get; private set; }
 	}
 }
