@@ -21,11 +21,12 @@ namespace CoroutineTimeline
 
 		public event Action Terminated;
 
-		public static Coroutine StartCoroutine(Func<Coroutine, IEnumerator<object>> coroutine, Action TerminationCallback = null, Action CancellationCallback = null)
+		public static Coroutine StartCoroutine(Func<Coroutine, IEnumerator<object>> coroutine, Action TerminationCallback = null, Action CancellationCallback = null, bool autoDispose = true)
 		{
 			Coroutine newCoroutine = new Coroutine(coroutine);
 			newCoroutine.Terminated += TerminationCallback;
 			newCoroutine.Cancelled += CancellationCallback;
+			newCoroutine.AutoDispose = autoDispose;
 			newCoroutine.Run();
 			return newCoroutine;
 		}
@@ -52,7 +53,8 @@ namespace CoroutineTimeline
 
 				IsCancelled = true;
 				OnCancel();
-				((IDisposable)this).Dispose();
+				if (AutoDispose)
+					((IDisposable)this).Dispose();
 			}
 		}
 
@@ -130,7 +132,8 @@ namespace CoroutineTimeline
 
 				IsTerminated = true;
 				OnTerminated();
-				((IDisposable)this).Dispose();
+				if (AutoDispose)
+					((IDisposable)this).Dispose();
 			}
 		}
 
@@ -160,6 +163,7 @@ namespace CoroutineTimeline
 
 		public CancellationToken CancellationToken { get { return _cancellationTokenSource.Token; } }
 
+		public bool AutoDispose { get; private set; } = true;
 		public bool IsDisposed { get; private set; }
 		public bool IsTerminated { get; private set; }
 		public bool IsCancelled { get; private set; }
