@@ -52,11 +52,11 @@ namespace CoroutineTimeline
 
 				IsCancelled = true;
 				OnCancel();
-				Dispose();
+				((IDisposable)this).Dispose();
 			}
 		}
 
-		public void Dispose()
+		void IDisposable.Dispose()
 		{
 			if (IsDisposed)
 				return;
@@ -130,7 +130,7 @@ namespace CoroutineTimeline
 
 				IsTerminated = true;
 				OnTerminated();
-				Dispose();
+				((IDisposable)this).Dispose();
 			}
 		}
 
