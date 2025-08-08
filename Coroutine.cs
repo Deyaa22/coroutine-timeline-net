@@ -60,20 +60,23 @@ namespace CoroutineTimeline
 
 		void IDisposable.Dispose()
 		{
-			if (IsDisposed)
-				return;
-
-			if (!IsCancelled && !IsCompleted)
+			lock (_lock)
 			{
-				CancelSilently();
-			}
+				if (IsDisposed)
+					return;
 
-			IsDisposed = true;
-			_cancellationTokenSource.Dispose();
-			_cancellationTokenSource = null;
-			_coroutineMethod = null;
-			Cancelled = null;
-			Completed = null;
+				if (!IsCancelled && !IsCompleted)
+				{
+					CancelSilently();
+				}
+
+				IsDisposed = true;
+				_cancellationTokenSource.Dispose();
+				_cancellationTokenSource = null;
+				_coroutineMethod = null;
+				Cancelled = null;
+				Completed = null;
+			}
 		}
 	}
 
