@@ -97,6 +97,14 @@ namespace CoroutineTimeline
 		private async Task StartASyncExecution()
 		{
 			var enumerator = _coroutineMethod(this);
+			await Task.Run(() => StartASyncExecution(enumerator));
+
+			if (!IsCancelled && !IsDisposed)
+				Terminate();
+		}
+
+		private async Task StartASyncExecution(IEnumerator<object> enumerator)
+		{
 			while (!IsCancelled && !IsDisposed && enumerator.MoveNext())
 			{
 				try
@@ -114,6 +122,10 @@ namespace CoroutineTimeline
 					{
 						await Task.Delay((int)(secs * 1000), _cancellationTokenSource.Token);
 					}
+					else if (i is IEnumerator<object> iterator)
+					{
+						await Task.Run(() => StartASyncExecution(iterator), CancellationToken);
+					}
 				}
 				catch
 				{
@@ -121,9 +133,6 @@ namespace CoroutineTimeline
 				}
 			}
 			enumerator.Dispose();
-
-			if (!IsCancelled && !IsDisposed)
-				Terminate();
 		}
 
 		private void Terminate()
