@@ -81,7 +81,7 @@ namespace CoroutineTimeline
 				if (IsDisposed)
 					return;
 
-				if (!IsRunning)
+				if (IsRunning)
 					_cancellationTokenSource.Cancel();
 
 				State |= CoroutineState.Disposed;
@@ -187,14 +187,10 @@ namespace CoroutineTimeline
 	}
 
 	public enum CoroutineState : sbyte
-	{ // 000 (IsRunning), 001 (IsCompleted), 010 (IsCancelled), 100 (IsDisposed), 101 (IsDisposed && IsCompleted), 110 (IsDisposed && IsCancelled), 111 (All - Prohibited)
-		Running = 0 << 0, // 1  // 000
-		Completed = 1 << 0, // 2 // Terminate >> [Dispose]
-		Cancelled = 1 << 1, // 4 // Cancel >> [Dispose]
-		Disposed = 1 << 2  // 8 // 1110 [Dispose]
+	{
+		Running = 0 << 0,
+		Completed = 1 << 0,
+		Cancelled = 1 << 1,
+		Disposed = 1 << 2
 	}
 }
-
-// Running > Complete > Dispose = Complete | Dispose
-// Running > Cancel > Dispose = Cancel | Dispose
-// Running > Dispose = Dispose
