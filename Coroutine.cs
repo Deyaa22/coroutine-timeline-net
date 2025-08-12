@@ -19,10 +19,10 @@ namespace CoroutineTimeline
 	{
 		public event Action<Coroutine> Ended;
 
-		public static Coroutine StartCoroutine(Func<Coroutine, IEnumerator<object>> coroutine, Action<Coroutine> terminationCallBack = null, bool autoDispose = true)
+		public static Coroutine StartCoroutine(Func<Coroutine, IEnumerator<object>> coroutine, Action<Coroutine> endedCallBack = null, bool autoDispose = true)
 		{
 			Coroutine newCoroutine = new Coroutine(coroutine);
-			newCoroutine.Ended += terminationCallBack;
+			newCoroutine.Ended += endedCallBack;
 			newCoroutine.AutoDispose = autoDispose;
 			newCoroutine.Run();
 			return newCoroutine;
