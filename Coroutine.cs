@@ -165,6 +165,7 @@ namespace CoroutineTimeline
 
 		private void OnEnded()
 		{
+			Ended?.Invoke(this);
 			_finishedEvent.Set();
 		}
 	}
