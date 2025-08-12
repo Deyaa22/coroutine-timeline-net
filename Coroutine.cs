@@ -28,7 +28,7 @@ namespace CoroutineTimeline
 			return newCoroutine;
 		}
 
-		public static Coroutine StartCoroutine(IEnumerator<object> instance, Action<Coroutine> endedCallback = null, bool autoDispose = true)
+		public static Coroutine StartInstance(IEnumerator<object> instance, Action<Coroutine> endedCallback = null, bool autoDispose = true)
 		{
 			return StartCoroutine((coroutine) => instance, endedCallback, autoDispose);
 		}
