@@ -17,23 +17,20 @@ namespace CoroutineTimeline
 	// Public Interface
 	public sealed partial class Coroutine : IDisposable
 	{
-		public event Action Cancelled;
+		public event Action<Coroutine> Ended;
 
-		public event Action Completed;
-
-		public static Coroutine StartCoroutine(Func<Coroutine, IEnumerator<object>> coroutine, Action CompletionCallback = null, Action CancellationCallback = null, bool autoDispose = true)
+		public static Coroutine StartCoroutine(Func<Coroutine, IEnumerator<object>> coroutine, Action<Coroutine> terminationCallBack = null, bool autoDispose = true)
 		{
 			Coroutine newCoroutine = new Coroutine(coroutine);
-			newCoroutine.Completed += CompletionCallback;
-			newCoroutine.Cancelled += CancellationCallback;
+			newCoroutine.Ended += terminationCallBack;
 			newCoroutine.AutoDispose = autoDispose;
 			newCoroutine.Run();
 			return newCoroutine;
 		}
 
-		public static Coroutine StartCoroutine(IEnumerator<object> instance, Action CompletionCallback = null, Action CancellationCallback = null, bool autoDispose = true)
+		public static Coroutine StartCoroutine(IEnumerator<object> instance, Action<Coroutine> endedCallback = null, bool autoDispose = true)
 		{
-			return StartCoroutine((coroutine) => instance, CompletionCallback, CancellationCallback, autoDispose);
+			return StartCoroutine((coroutine) => instance, endedCallback, autoDispose);
 		}
 
 		public void CancelAfter(int millisecondsDelay)
@@ -53,14 +50,28 @@ namespace CoroutineTimeline
 		{
 			lock (_lock)
 			{
-				if (IsDisposed || IsCompleted || IsCancelled)
+				if (!IsRunning)
 					return;
 
-				IsCancelled = true;
-				OnCancel();
+				State |= CoroutineState.Cancelled;
+				_cancellationTokenSource.Cancel();
+				OnEnded();
 				if (AutoDispose)
 					((IDisposable)this).Dispose();
 			}
+		}
+
+		/// <summary>
+		/// Blocks caller thread until the coroutine stops running.
+		/// </summary>
+		/// <param name="token">The CancellationToken to observe, stops waiting and blocking caller thread.</param>
+		public void Wait(CancellationToken token)
+		{
+			try
+			{
+				_finishedEvent.Wait(token);
+			}
+			catch { }
 		}
 
 		void IDisposable.Dispose()
@@ -70,17 +81,14 @@ namespace CoroutineTimeline
 				if (IsDisposed)
 					return;
 
-				if (!IsCancelled && !IsCompleted)
-				{
-					CancelSilently();
-				}
+				if (!IsRunning)
+					_cancellationTokenSource.Cancel();
 
-				IsDisposed = true;
+				State |= CoroutineState.Disposed;
 				_cancellationTokenSource.Dispose();
 				_cancellationTokenSource = null;
 				_coroutineMethod = null;
-				Cancelled = null;
-				Completed = null;
+				Ended = null;
 			}
 		}
 	}
@@ -104,13 +112,15 @@ namespace CoroutineTimeline
 			var enumerator = _coroutineMethod(this);
 			await Task.Run(() => StartASyncExecution(enumerator));
 
-			if (!IsCancelled && !IsDisposed)
-				Terminate();
+			//if (!IsCancelled && !IsDisposed)
+			if (IsRunning)
+				Complete();
 		}
 
 		private async Task StartASyncExecution(IEnumerator<object> enumerator)
 		{
-			while (!IsCancelled && !IsDisposed && enumerator.MoveNext())
+			//while (!IsCancelled && !IsDisposed && enumerator.MoveNext())
+			while (IsRunning && enumerator.MoveNext())
 			{
 				try
 				{
@@ -140,34 +150,22 @@ namespace CoroutineTimeline
 			enumerator.Dispose();
 		}
 
-		private void Terminate()
+		private void Complete()
 		{
-			lock (_lock)
-			{
-				if (IsDisposed || IsCompleted || IsCancelled)
-					return;
+			//if (IsDisposed || IsCompleted || IsCancelled)
+			if (!IsRunning)
+				return;
 
-				IsCompleted = true;
-				OnCompleted();
-				if (AutoDispose)
-					((IDisposable)this).Dispose();
-			}
+			//IsCompleting = true;
+			State |= CoroutineState.Completed;
+			OnEnded();
+			if (AutoDispose)
+				((IDisposable)this).Dispose();
 		}
 
-		private void CancelSilently()
-        {
-			if (!IsDisposed && !_cancellationTokenSource.IsCancellationRequested)
-				_cancellationTokenSource.Cancel();
-        }
-
-		private void OnCancel()
+		private void OnEnded()
 		{
-			Cancelled?.Invoke();
-		}
-
-		private void OnCompleted()
-		{
-			Completed?.Invoke();
+			_finishedEvent.Set();
 		}
 	}
 
@@ -177,12 +175,26 @@ namespace CoroutineTimeline
 		private object _lock = new object();
 		private Func<Coroutine, IEnumerator<object>> _coroutineMethod;
 		private CancellationTokenSource _cancellationTokenSource;
+		private readonly ManualResetEventSlim _finishedEvent = new ManualResetEventSlim(false);
 
 		public CancellationToken CancellationToken { get { return _cancellationTokenSource.Token; } }
 
+		public CoroutineState State { get; private set; } = CoroutineState.Running;
+
 		public bool AutoDispose { get; private set; } = true;
-		public bool IsDisposed { get; private set; }
-		public bool IsCompleted { get; private set; }
-		public bool IsCancelled { get; private set; }
+		public bool IsDisposed { get { return (State & CoroutineState.Disposed) != 0; } }
+		public bool IsRunning { get { return State == CoroutineState.Running; } }
+	}
+
+	public enum CoroutineState : sbyte
+	{ // 000 (IsRunning), 001 (IsCompleted), 010 (IsCancelled), 100 (IsDisposed), 101 (IsDisposed && IsCompleted), 110 (IsDisposed && IsCancelled), 111 (All - Prohibited)
+		Running = 0 << 0, // 1  // 000
+		Completed = 1 << 0, // 2 // Terminate >> [Dispose]
+		Cancelled = 1 << 1, // 4 // Cancel >> [Dispose]
+		Disposed = 1 << 2  // 8 // 1110 [Dispose]
 	}
 }
+
+// Running > Complete > Dispose = Complete | Dispose
+// Running > Cancel > Dispose = Cancel | Dispose
+// Running > Dispose = Dispose
