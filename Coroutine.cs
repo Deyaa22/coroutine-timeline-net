@@ -173,17 +173,23 @@ namespace CoroutineTimeline
 	// Attributes & Properties
 	public sealed partial class Coroutine : IDisposable
 	{
-		private object _lock = new object();
-		private Func<Coroutine, IEnumerator<object>> _coroutineMethod;
-		private CancellationTokenSource _cancellationTokenSource;
+		// Synchronization
+		private readonly object _lock = new object();
 		private readonly ManualResetEventSlim _finishedEvent = new ManualResetEventSlim(false);
 
-		public CancellationToken CancellationToken { get { return _cancellationTokenSource.Token; } }
+		// Coroutine logic
+		private Func<Coroutine, IEnumerator<object>> _coroutineMethod;
+		private CancellationTokenSource _cancellationTokenSource;
+
+		// Public properties
+		public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
 		public CoroutineState State { get; private set; } = CoroutineState.Running;
 
 		public bool AutoDispose { get; private set; } = true;
+
 		public bool IsDisposed { get { return (State & CoroutineState.Disposed) != 0; } }
+
 		public bool IsRunning { get { return State == CoroutineState.Running; } }
 	}
 
