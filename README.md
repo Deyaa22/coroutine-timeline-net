@@ -22,42 +22,38 @@ Or find it on [NuGet Gallery - CoroutineTimeline.Net](https://www.nuget.org/pack
 ```csharp
 public sealed class Coroutine : IDisposable
 {
-    public static Coroutine StartCoroutine(
-        Func<Coroutine, IEnumerator<object>> coroutine,
-        Action CompletionCallback = null,
-        Action CancellationCallback = null,
-        bool autoDispose = true);
-
+    public static Coroutine StartCoroutine(Func<Coroutine, IEnumerator<object>> coroutine);
+    public static Coroutine StartCoroutine(IEnumerator<object> coroutine);
+    
     public void Cancel();
     public void CancelAfter(int millisecondsDelay);
     public void CancelAfter(TimeSpan timeDelay);
 
-    public bool IsCompleted { get; }
-    public bool IsCancelled { get; }
-    public bool IsDisposed { get; }
-    public bool AutoDispose { get; } = true;
     public CancellationToken CancellationToken { get; }
+	
+    public CoroutineState State { get; }
+	
+    public bool AutoDispose { get; }
+    public bool IsDisposed { get; }
+    public bool IsRunning { get; }
 
-    public event Action Completed;
-    public event Action Cancelled;
+    public event Action Ended;
 
-    // Dispose coroutine (usually auto-disposed after completion/cancellation)
     void IDisposable.Dispose();
 }
 
 ```
 * Uses `Task.Run()` and `Task.Delay()` with a `CancellationTokenSource`.
-* Auto-disposes after termination or cancellation.
+* Auto-disposes after completion or cancellation.
 * Events:
 
-  * `Completed`: Raised when the coroutine finishes normally.
-  * `Cancelled`: Raised when `Cancel()` or `CancelAfter()` is called.
+  * `Ended`: Raised when the coroutine finishes, either normally or due to cancellation.
 
 ## How to Use
 ```csharp
 using CoroutineTimeline;
 
-Coroutine co = Coroutine.StartCoroutine(MyCoroutine, Completed: () => { ... }, Cancelled: () => {...});
+Coroutine co = Coroutine.StartCoroutine(MyCoroutine, Ended: () => { ... });
 
 // Cancel the coroutine manually if needed
 co.Cancel();
