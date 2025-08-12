@@ -31,6 +31,11 @@ namespace CoroutineTimeline
 			return newCoroutine;
 		}
 
+		public static Coroutine StartCoroutine(IEnumerator<object> instance, Action CompletionCallback = null, Action CancellationCallback = null, bool autoDispose = true)
+		{
+			return StartCoroutine((coroutine) => instance, CompletionCallback, CancellationCallback, autoDispose);
+		}
+
 		public void CancelAfter(int millisecondsDelay)
 		{
 			CancelAfter(TimeSpan.FromMilliseconds(millisecondsDelay));
