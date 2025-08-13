@@ -29,6 +29,9 @@ public sealed class Coroutine : IDisposable
     public void CancelAfter(int millisecondsDelay);
     public void CancelAfter(TimeSpan timeDelay);
 
+    public void Wait();
+    public void Wait(CancellationToken token);
+
     public CancellationToken CancellationToken { get; }
 	
     public CoroutineState State { get; }
@@ -148,7 +151,7 @@ You wrote sequential code, but it executes asynchronously with precise delays.
 ### Pro — Game Loop with Nested Coroutines, State Control
 
 ```csharp
-Coroutine.StartCoroutine(PlayGame, () => {Console.WriteLinee("Completed")}, () => {Console.WriteLinee("Cancelled")});
+Coroutine.StartCoroutine(PlayGame, () => {Console.WriteLinee("Ended")});
 
 static IEnumerator<object> PlayGame(Coroutine co)
 {
