@@ -109,7 +109,7 @@ static IEnumerator<object> MyCoroutine2(Coroutine co, string name, int age) // Y
 
 ### 🛠 **Professional-Grade**
 
-* **Full coroutine object access** — Trace state (`IsCompleted`, `IsCancelled`, `IsDisposed`).
+* **Full coroutine object access** — Trace state (`IsRunning`, `State`, `Ended`,  etc...).
 * **Deep nesting** — Start a coroutine *inside* another coroutine as deep as you want, stacked internally.
 * **Independent nested states** — Each nested coroutine has its own state and can be:
 
