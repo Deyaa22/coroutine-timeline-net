@@ -74,6 +74,18 @@ namespace CoroutineTimeline
 			catch { }
 		}
 
+		/// <summary>
+		/// Blocks caller thread until the coroutine stops running.
+		/// </summary>
+		public void Wait()
+		{
+			try
+			{
+				_finishedEvent.Wait();
+			}
+			catch { }
+		}
+
 		void IDisposable.Dispose()
 		{
 			lock (_lock)
